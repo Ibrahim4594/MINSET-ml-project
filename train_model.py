@@ -3,10 +3,12 @@ MNIST Model Training Script
 Trains a lightweight neural network on MNIST dataset and saves it for inference.
 """
 import os
+import time
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
+from model_manager import ModelManager
 
 def train_mnist_model():
     """Train and save a lightweight model on MNIST dataset."""
@@ -47,6 +49,7 @@ def train_mnist_model():
 
     # Train model
     print("\nTraining model...")
+    start_time = time.time()
     history = model.fit(
         x_train_flat,
         y_train,
@@ -55,6 +58,7 @@ def train_mnist_model():
         verbose=1,
         validation_split=0.1
     )
+    training_time = time.time() - start_time
 
     # Evaluate on test set
     print("\nEvaluating on test set...")
@@ -71,8 +75,26 @@ def train_mnist_model():
     # Print model file size
     model_size_mb = os.path.getsize(model_path) / (1024 * 1024)
     print(f"Model size: {model_size_mb:.2f} MB")
+    print(f"Training time: {training_time:.1f} seconds")
 
-    return model
+    # Register model with version tracking
+    manager = ModelManager()
+    manager.register_model(
+        model_path=model_path,
+        accuracy=float(test_accuracy),
+        loss=float(test_loss),
+        training_time=training_time,
+        epochs=15,
+        batch_size=128
+    )
+
+    # Print training history
+    print("\nTraining Summary:")
+    print(f"  Final Training Accuracy: {history.history['accuracy'][-1]:.4f}")
+    print(f"  Final Validation Accuracy: {history.history['val_accuracy'][-1]:.4f}")
+    print(f"  Test Accuracy: {test_accuracy:.4f}")
+
+    return model, history
 
 if __name__ == "__main__":
     train_mnist_model()
