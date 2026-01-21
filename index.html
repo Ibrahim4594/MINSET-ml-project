@@ -290,6 +290,17 @@
         </div>
 
         <div style="margin-bottom: 20px; padding: 12px; background: #f9f9f9; border-radius: 8px; border: 1px solid #eee;">
+            <div style="margin-bottom: 10px;">
+                <label style="display: block; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Drawing Tools</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                    <button id="brushBtn" style="flex: 1; padding: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">✏️ Brush</button>
+                    <button id="eraserBtn" style="flex: 1; padding: 10px; background: #f0f0f0; color: #333; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; font-weight: 600;">🗑️ Eraser</button>
+                </div>
+                <div>
+                    <label style="font-size: 12px; color: #666;">Brush Size: <span id="brushSizeValue">12</span>px</label>
+                    <input type="range" id="brushSizeSlider" min="2" max="30" value="12" style="width: 100%; cursor: pointer;">
+                </div>
+            </div>
             <input type="file" id="imageUpload" accept="image/*" style="margin-bottom: 10px; display: block;">
             <small style="color: #666;">Or upload an image (jpg, png, etc.) to predict</small>
         </div>
@@ -338,15 +349,45 @@
         const realtimeCheckbox = document.getElementById('realtimeCheckbox');
         const resultsDiv = document.getElementById('results');
         const statusDiv = document.getElementById('status');
+        const brushBtn = document.getElementById('brushBtn');
+        const eraserBtn = document.getElementById('eraserBtn');
+        const brushSizeSlider = document.getElementById('brushSizeSlider');
+        const brushSizeValue = document.getElementById('brushSizeValue');
 
         // Drawing settings
-        const brushSize = 12;
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = brushSize;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
+        let drawingMode = 'pen'; // 'pen' or 'eraser'
+        let brushSize = 12;
+
+        function initCanvas() {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            updateDrawingMode('pen');
+        }
+
+        function updateDrawingMode(mode) {
+            drawingMode = mode;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            if (mode === 'pen') {
+                ctx.strokeStyle = 'black';
+                ctx.globalCompositeOperation = 'source-over';
+                brushBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                brushBtn.style.color = 'white';
+                eraserBtn.style.background = '#f0f0f0';
+                eraserBtn.style.color = '#333';
+            } else if (mode === 'eraser') {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.strokeStyle = 'rgba(0,0,0,1)';
+                eraserBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                eraserBtn.style.color = 'white';
+                brushBtn.style.background = '#f0f0f0';
+                brushBtn.style.color = '#333';
+            }
+            ctx.lineWidth = brushSize;
+        }
+
+        initCanvas();
 
         // Canvas drawing events
         canvas.addEventListener('mousedown', startDrawing);
@@ -401,6 +442,15 @@
         // Button events
         predictBtn.addEventListener('click', predictDigit);
         clearBtn.addEventListener('click', clearCanvas);
+        brushBtn.addEventListener('click', () => updateDrawingMode('pen'));
+        eraserBtn.addEventListener('click', () => updateDrawingMode('eraser'));
+
+        // Brush size control
+        brushSizeSlider.addEventListener('input', (e) => {
+            brushSize = parseInt(e.target.value);
+            brushSizeValue.textContent = brushSize;
+            ctx.lineWidth = brushSize;
+        });
 
         // Image upload
         document.getElementById('imageUpload').addEventListener('change', handleImageUpload);
