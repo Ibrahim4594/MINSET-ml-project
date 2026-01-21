@@ -13,10 +13,22 @@ import tensorflow as tf
 from tensorflow import keras
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
+from flasgger import Swagger
 from prediction_service import PredictionService
 
 app = Flask(__name__, template_folder=".", static_folder=".")
 CORS(app)
+swagger = Swagger(app, template={
+    "swagger": "2.0",
+    "info": {
+        "title": "MNIST Digit Recognition API",
+        "description": "Real-time handwritten digit recognition using TensorFlow",
+        "contact": {
+            "name": "API Support",
+        },
+        "version": "1.0.0"
+    }
+})
 
 # Global variables
 model = None
@@ -46,8 +58,54 @@ def index():
 @app.route('/predict', methods=['POST'])
 def predict():
     """
-    Predict digit from uploaded image.
-    Expects JSON with 'image' field containing base64 encoded PNG.
+    Predict digit from a handwritten digit image.
+    ---
+    tags:
+      - Prediction
+    parameters:
+      - in: body
+        name: body
+        description: Image data for prediction
+        required: true
+        schema:
+          type: object
+          properties:
+            image:
+              type: string
+              description: Base64 encoded PNG image
+              example: "data:image/png;base64,iVBORw0KGgoAAAANS..."
+    responses:
+      200:
+        description: Successful prediction
+        schema:
+          type: object
+          properties:
+            digit:
+              type: integer
+              description: Predicted digit (0-9)
+              example: 7
+            confidence:
+              type: number
+              description: Confidence score (0-1)
+              example: 0.9987
+            top_3:
+              type: array
+              description: Top 3 predictions
+              items:
+                type: object
+                properties:
+                  digit:
+                    type: integer
+                  confidence:
+                    type: number
+            inference_time_ms:
+              type: number
+              description: Inference time in milliseconds
+              example: 8.5
+      400:
+        description: Invalid image or no image provided
+      500:
+        description: Model not loaded or server error
     """
     if prediction_service is None:
         return jsonify({'error': 'Model not loaded'}), 500
@@ -76,7 +134,48 @@ def predict():
 def predict_batch():
     """
     Predict digits from multiple images.
-    Expects JSON with 'images' field containing list of base64 encoded PNGs.
+    ---
+    tags:
+      - Prediction
+    parameters:
+      - in: body
+        name: body
+        description: Batch of images for prediction
+        required: true
+        schema:
+          type: object
+          properties:
+            images:
+              type: array
+              description: List of base64 encoded PNG images
+              items:
+                type: string
+              example: ["data:image/png;base64,iVBORw0K...", "data:image/png;base64,iVBORw1K..."]
+    responses:
+      200:
+        description: Batch predictions completed
+        schema:
+          type: object
+          properties:
+            predictions:
+              type: array
+              description: List of predictions for each image
+            total_time_ms:
+              type: number
+              description: Total time for all predictions
+            average_time_ms:
+              type: number
+              description: Average time per prediction
+            count:
+              type: integer
+              description: Number of images processed
+            successful:
+              type: integer
+              description: Number of successful predictions
+      400:
+        description: Invalid images or empty list
+      500:
+        description: Model not loaded or server error
     """
     if prediction_service is None:
         return jsonify({'error': 'Model not loaded'}), 500
@@ -106,7 +205,24 @@ def predict_batch():
 
 @app.route('/health', methods=['GET'])
 def health():
-    """Health check endpoint."""
+    """
+    Health check endpoint.
+    ---
+    tags:
+      - Health
+    responses:
+      200:
+        description: Server is healthy
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "ok"
+            model_loaded:
+              type: boolean
+              example: true
+    """
     return jsonify({
         'status': 'ok',
         'model_loaded': model is not None
