@@ -289,6 +289,11 @@
             <button id="clearBtn">Clear</button>
         </div>
 
+        <div style="margin-bottom: 20px; padding: 12px; background: #f9f9f9; border-radius: 8px; border: 1px solid #eee;">
+            <input type="file" id="imageUpload" accept="image/*" style="margin-bottom: 10px; display: block;">
+            <small style="color: #666;">Or upload an image (jpg, png, etc.) to predict</small>
+        </div>
+
         <div class="options">
             <input type="checkbox" id="realtimeCheckbox">
             <label for="realtimeCheckbox">Real-time prediction</label>
@@ -397,11 +402,44 @@
         predictBtn.addEventListener('click', predictDigit);
         clearBtn.addEventListener('click', clearCanvas);
 
+        // Image upload
+        document.getElementById('imageUpload').addEventListener('change', handleImageUpload);
+
         function clearCanvas() {
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             resultsDiv.classList.remove('show');
             statusDiv.textContent = '';
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    // Clear canvas and draw uploaded image
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    // Draw image centered, maintaining aspect ratio
+                    const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+                    const x = (canvas.width - img.width * scale) / 2;
+                    const y = (canvas.height - img.height * scale) / 2;
+
+                    ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+
+                    // Auto-predict after loading image
+                    setTimeout(predictDigit, 500);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+
+            // Reset input
+            event.target.value = '';
         }
 
         async function predictDigit() {
