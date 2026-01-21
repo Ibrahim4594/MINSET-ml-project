@@ -115,6 +115,63 @@
             background: #e0e0e0;
         }
 
+        .drawing-tools {
+            margin-bottom: 20px;
+            padding: 12px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+
+        .tools-label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .tool-buttons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .tool-btn {
+            flex: 1;
+            padding: 8px;
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .tool-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+        }
+
+        .brush-size-control {
+            margin-top: 10px;
+        }
+
+        .brush-size-control label {
+            font-size: 12px;
+            color: #666;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+        }
+
         .options {
             display: flex;
             align-items: center;
@@ -163,14 +220,6 @@
             }
         }
 
-        .result-item {
-            margin-bottom: 15px;
-        }
-
-        .result-item:last-child {
-            margin-bottom: 0;
-        }
-
         .predicted-digit {
             font-size: 48px;
             font-weight: bold;
@@ -199,62 +248,6 @@
             background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
             border-radius: 4px;
             transition: width 0.3s ease;
-        }
-
-        .top-predictions {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #e0e0e0;
-        }
-
-        .top-predictions-title {
-            font-size: 12px;
-            color: #999;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 10px;
-        }
-
-        .prediction-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            font-size: 13px;
-        }
-
-        .prediction-digit {
-            font-weight: 600;
-            color: #333;
-            width: 30px;
-        }
-
-        .prediction-bar {
-            flex: 1;
-            height: 6px;
-            background: #e0e0e0;
-            border-radius: 3px;
-            margin: 0 10px;
-            overflow: hidden;
-        }
-
-        .prediction-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            border-radius: 3px;
-        }
-
-        .prediction-confidence {
-            width: 40px;
-            text-align: right;
-            color: #666;
-        }
-
-        .inference-time {
-            font-size: 12px;
-            color: #999;
-            margin-top: 10px;
-            text-align: right;
         }
 
         .status {
@@ -289,26 +282,20 @@
         </div>
 
         <div class="controls">
-            <button id="undoBtn" title="Undo (Ctrl+Z)" style="flex: 0.5;">↶</button>
-            <button id="redoBtn" title="Redo (Ctrl+Y)" style="flex: 0.5;">↷</button>
             <button id="predictBtn">Predict</button>
             <button id="clearBtn">Clear</button>
         </div>
 
-        <div style="margin-bottom: 20px; padding: 12px; background: #f9f9f9; border-radius: 8px; border: 1px solid #eee;">
-            <div style="margin-bottom: 10px;">
-                <label style="display: block; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Drawing Tools</label>
-                <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-                    <button id="brushBtn" style="flex: 1; padding: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">✏️ Brush</button>
-                    <button id="eraserBtn" style="flex: 1; padding: 10px; background: #f0f0f0; color: #333; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; font-weight: 600;">🗑️ Eraser</button>
-                </div>
-                <div>
-                    <label style="font-size: 12px; color: #666;">Brush Size: <span id="brushSizeValue">12</span>px</label>
-                    <input type="range" id="brushSizeSlider" min="2" max="30" value="12" style="width: 100%; cursor: pointer;">
-                </div>
+        <div class="drawing-tools">
+            <span class="tools-label">Drawing Tools</span>
+            <div class="tool-buttons">
+                <button class="tool-btn active" id="brushBtn">✏️ Brush</button>
+                <button class="tool-btn" id="eraserBtn">🗑️ Eraser</button>
             </div>
-            <input type="file" id="imageUpload" accept="image/*" style="margin-bottom: 10px; display: block;">
-            <small style="color: #666;">Or upload an image (jpg, png, etc.) to predict</small>
+            <div class="brush-size-control">
+                <label>Brush Size: <span id="brushSizeValue">12</span>px</label>
+                <input type="range" id="brushSizeSlider" min="2" max="30" value="12">
+            </div>
         </div>
 
         <div class="options">
@@ -317,130 +304,53 @@
         </div>
 
         <div class="results" id="results">
-            <div class="result-item">
-                <div class="confidence-label">Predicted Digit</div>
-                <div class="predicted-digit" id="predictedDigit">?</div>
+            <div class="predicted-digit" id="predictedDigit">?</div>
+            <div class="confidence-label">Confidence</div>
+            <div class="confidence-bar">
+                <div class="confidence-fill" id="confidenceFill" style="width: 0%"></div>
             </div>
-
-            <div class="result-item">
-                <div class="confidence-label">Confidence</div>
-                <div class="confidence-bar">
-                    <div class="confidence-fill" id="confidenceFill" style="width: 0%"></div>
-                </div>
-                <div style="font-size: 12px; color: #666; margin-top: 5px;">
-                    <span id="confidencePercent">0</span>%
-                </div>
+            <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                <span id="confidencePercent">0</span>%
             </div>
-
-            <div class="top-predictions">
-                <div class="top-predictions-title">Top 3 Predictions</div>
-                <div id="topPredictionsList"></div>
-            </div>
-
-            <div class="inference-time">Inference time: <span id="inferenceTime">0</span>ms</div>
         </div>
 
         <div class="status" id="status"></div>
     </div>
 
-    <script src="frontend_state.js"></script>
     <script>
         // Canvas setup
         const canvas = document.getElementById('drawingCanvas');
         const ctx = canvas.getContext('2d');
-        let isDrawing = false;
 
         // UI elements
         const predictBtn = document.getElementById('predictBtn');
         const clearBtn = document.getElementById('clearBtn');
-        const realtimeCheckbox = document.getElementById('realtimeCheckbox');
-        const resultsDiv = document.getElementById('results');
-        const statusDiv = document.getElementById('status');
         const brushBtn = document.getElementById('brushBtn');
         const eraserBtn = document.getElementById('eraserBtn');
         const brushSizeSlider = document.getElementById('brushSizeSlider');
         const brushSizeValue = document.getElementById('brushSizeValue');
+        const realtimeCheckbox = document.getElementById('realtimeCheckbox');
+        const resultsDiv = document.getElementById('results');
+        const statusDiv = document.getElementById('status');
 
-        // Drawing settings
-        let drawingMode = 'pen'; // 'pen' or 'eraser'
+        // State
+        let drawingMode = 'pen';
         let brushSize = 12;
-        let drawingHistory = [];
-        let historyStep = -1;
+        let isDrawing = false;
 
-        function saveCanvasState() {
-            historyStep++;
-            if (historyStep < drawingHistory.length) {
-                drawingHistory.length = historyStep;
-            }
-            drawingHistory.push(canvas.toDataURL());
-        }
-
-        function undo() {
-            if (historyStep > 0) {
-                historyStep--;
-                loadCanvasState(historyStep);
-            }
-        }
-
-        function redo() {
-            if (historyStep < drawingHistory.length - 1) {
-                historyStep++;
-                loadCanvasState(historyStep);
-            }
-        }
-
-        function loadCanvasState(step) {
-            const img = new Image();
-            img.src = drawingHistory[step];
-            img.onload = function() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(img, 0, 0);
-            };
-        }
-
+        // Initialize canvas
         function initCanvas() {
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            updateDrawingMode('pen');
-            saveCanvasState();
-        }
-
-        function updateDrawingMode(mode) {
-            drawingMode = mode;
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = brushSize;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
-
-            if (mode === 'pen') {
-                ctx.strokeStyle = 'black';
-                ctx.globalCompositeOperation = 'source-over';
-                brushBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-                brushBtn.style.color = 'white';
-                eraserBtn.style.background = '#f0f0f0';
-                eraserBtn.style.color = '#333';
-            } else if (mode === 'eraser') {
-                ctx.globalCompositeOperation = 'destination-out';
-                ctx.strokeStyle = 'rgba(0,0,0,1)';
-                eraserBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-                eraserBtn.style.color = 'white';
-                brushBtn.style.background = '#f0f0f0';
-                brushBtn.style.color = '#333';
-            }
-            ctx.lineWidth = brushSize;
         }
 
         initCanvas();
 
-        // Canvas drawing events
-        canvas.addEventListener('mousedown', startDrawing);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('mouseup', stopDrawing);
-        canvas.addEventListener('mouseout', stopDrawing);
-
-        // Touch events for mobile
-        canvas.addEventListener('touchstart', handleTouch);
-        canvas.addEventListener('touchmove', handleTouch);
-        canvas.addEventListener('touchend', stopDrawing);
-
+        // Drawing functions
         function startDrawing(e) {
             isDrawing = true;
             const rect = canvas.getBoundingClientRect();
@@ -459,9 +369,8 @@
             ctx.lineTo(x, y);
             ctx.stroke();
 
-            // Real-time prediction
             if (realtimeCheckbox.checked) {
-                predictDigit();
+                setTimeout(predictDigit, 500);
             }
         }
 
@@ -469,127 +378,80 @@
             if (isDrawing) {
                 isDrawing = false;
                 ctx.closePath();
-                saveCanvasState();
             }
         }
 
-        function handleTouch(e) {
-            e.preventDefault();
-            const touch = e.touches[0];
-            const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 'mousemove', {
-                clientX: touch.clientX,
-                clientY: touch.clientY
-            });
-            canvas.dispatchEvent(mouseEvent);
-        }
+        // Event listeners
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
 
-        // Button events
-        predictBtn.addEventListener('click', predictDigit);
-        clearBtn.addEventListener('click', clearCanvas);
-        brushBtn.addEventListener('click', () => updateDrawingMode('pen'));
-        eraserBtn.addEventListener('click', () => updateDrawingMode('eraser'));
-        document.getElementById('undoBtn').addEventListener('click', undo);
-        document.getElementById('redoBtn').addEventListener('click', redo);
-
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey || e.metaKey) {
-                if (e.key === 'z') {
-                    e.preventDefault();
-                    undo();
-                } else if (e.key === 'y') {
-                    e.preventDefault();
-                    redo();
-                }
-            }
+        // Tool switching
+        brushBtn.addEventListener('click', () => {
+            drawingMode = 'pen';
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.strokeStyle = 'black';
+            brushBtn.classList.add('active');
+            eraserBtn.classList.remove('active');
+            ctx.lineWidth = brushSize;
         });
 
-        // Brush size control
+        eraserBtn.addEventListener('click', () => {
+            drawingMode = 'eraser';
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.strokeStyle = 'rgba(0,0,0,1)';
+            eraserBtn.classList.add('active');
+            brushBtn.classList.remove('active');
+            ctx.lineWidth = brushSize;
+        });
+
+        // Brush size
         brushSizeSlider.addEventListener('input', (e) => {
             brushSize = parseInt(e.target.value);
             brushSizeValue.textContent = brushSize;
             ctx.lineWidth = brushSize;
         });
 
-        // Image upload
-        document.getElementById('imageUpload').addEventListener('change', handleImageUpload);
-
-        function clearCanvas() {
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Buttons
+        predictBtn.addEventListener('click', predictDigit);
+        clearBtn.addEventListener('click', () => {
+            initCanvas();
             resultsDiv.classList.remove('show');
             statusDiv.textContent = '';
-            drawingHistory = [];
-            historyStep = -1;
-            saveCanvasState();
-        }
-
-        function handleImageUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    // Clear canvas and draw uploaded image
-                    ctx.fillStyle = 'white';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                    // Draw image centered, maintaining aspect ratio
-                    const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
-                    const x = (canvas.width - img.width * scale) / 2;
-                    const y = (canvas.height - img.height * scale) / 2;
-
-                    ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
-
-                    // Auto-predict after loading image
-                    setTimeout(predictDigit, 500);
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-
-            // Reset input
-            event.target.value = '';
-        }
+        });
 
         async function predictDigit() {
             try {
                 predictBtn.disabled = true;
-                statusDiv.textContent = '';
                 statusDiv.className = 'status loading';
                 statusDiv.textContent = 'Predicting...';
 
-                // Get canvas image as base64
                 const imageData = canvas.toDataURL('image/png');
 
-                // Send to backend
                 const response = await fetch('/predict', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ image: imageData })
                 });
 
-                if (!response.ok) {
-                    throw new Error(`Server error: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`Error: ${response.status}`);
 
                 const result = await response.json();
 
-                if (result.error) {
-                    throw new Error(result.error);
-                }
+                if (result.error) throw new Error(result.error);
 
                 // Display results
-                displayResults(result);
+                document.getElementById('predictedDigit').textContent = result.digit;
+                const confidence = Math.round(result.confidence * 100);
+                document.getElementById('confidencePercent').textContent = confidence;
+                document.getElementById('confidenceFill').style.width = confidence + '%';
+
+                resultsDiv.classList.add('show');
                 statusDiv.className = 'status success';
-                statusDiv.textContent = 'Prediction complete!';
+                statusDiv.textContent = '✓ Prediction complete!';
 
             } catch (error) {
-                console.error('Error:', error);
                 statusDiv.className = 'status error';
                 statusDiv.textContent = `Error: ${error.message}`;
             } finally {
@@ -597,58 +459,12 @@
             }
         }
 
-        function displayResults(result) {
-            document.getElementById('predictedDigit').textContent = result.digit;
-            const confidencePercent = Math.round(result.confidence * 100);
-            document.getElementById('confidencePercent').textContent = confidencePercent;
-            document.getElementById('confidenceFill').style.width = confidencePercent + '%';
-            document.getElementById('inferenceTime').textContent = result.inference_time_ms.toFixed(1);
-
-            // Display top 3 predictions
-            const topPredictionsList = document.getElementById('topPredictionsList');
-            topPredictionsList.innerHTML = '';
-
-            result.top_3.forEach((pred, index) => {
-                const percentage = Math.round(pred.confidence * 100);
-                const row = document.createElement('div');
-                row.className = 'prediction-row';
-                row.innerHTML = `
-                    <div class="prediction-digit">${pred.digit}</div>
-                    <div class="prediction-bar">
-                        <div class="prediction-bar-fill" style="width: ${percentage}%"></div>
-                    </div>
-                    <div class="prediction-confidence">${percentage}%</div>
-                `;
-                topPredictionsList.appendChild(row);
-            });
-
-            resultsDiv.classList.add('show');
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(() => console.log('Service Worker registered'))
+                .catch((e) => console.log('SW failed:', e));
         }
-
-        // Check backend health on load
-        window.addEventListener('load', async () => {
-            try {
-                const response = await fetch('/health');
-                const data = await response.json();
-                if (!data.model_loaded) {
-                    statusDiv.className = 'status error';
-                    statusDiv.textContent = 'Model not loaded. Please run train_model.py first.';
-                }
-            } catch (error) {
-                console.error('Health check failed:', error);
-            }
-
-            // Register service worker for offline support
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then((registration) => {
-                        console.log('Service Worker registered:', registration);
-                    })
-                    .catch((error) => {
-                        console.log('Service Worker registration failed:', error);
-                    });
-            }
-        });
     </script>
 </body>
 </html>
