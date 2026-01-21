@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  mnist-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mnist-digit-recognition
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - FLASK_DEBUG=0
+    volumes:
+      - ./models:/app/models
+      - ./visualizations:/app/visualizations
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  # Optional: Development container with Jupyter
+  jupyter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mnist-jupyter
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./:/app
+      - ./models:/app/models
+    command: jupyter notebook --ip=0.0.0.0 --no-browser --allow-root
+    restart: unless-stopped
+    profiles:
+      - dev
+
+volumes:
+  models:
+  visualizations:
