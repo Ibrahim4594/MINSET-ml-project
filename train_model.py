@@ -8,7 +8,9 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
+from sklearn.metrics import confusion_matrix
 from model_manager import ModelManager
+from training_visualizer import TrainingVisualizer
 
 def train_mnist_model():
     """Train and save a lightweight model on MNIST dataset."""
@@ -79,7 +81,7 @@ def train_mnist_model():
 
     # Register model with version tracking
     manager = ModelManager()
-    manager.register_model(
+    model_id = manager.register_model(
         model_path=model_path,
         accuracy=float(test_accuracy),
         loss=float(test_loss),
@@ -93,6 +95,19 @@ def train_mnist_model():
     print(f"  Final Training Accuracy: {history.history['accuracy'][-1]:.4f}")
     print(f"  Final Validation Accuracy: {history.history['val_accuracy'][-1]:.4f}")
     print(f"  Test Accuracy: {test_accuracy:.4f}")
+
+    # Visualize training history
+    print("\nGenerating visualizations...")
+    visualizer = TrainingVisualizer()
+    visualizer.plot_training_history(history, model_id=model_id)
+
+    # Generate confusion matrix
+    print("Computing confusion matrix...")
+    y_pred = np.argmax(model.predict(x_test_flat, verbose=0), axis=1)
+    cm = confusion_matrix(y_test, y_pred)
+    visualizer.plot_confusion_matrix(cm, model_id=model_id)
+
+    print("\nAll visualizations saved to visualizations/ directory")
 
     return model, history
 
