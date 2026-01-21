@@ -285,6 +285,8 @@
         </div>
 
         <div class="controls">
+            <button id="undoBtn" title="Undo (Ctrl+Z)" style="flex: 0.5;">↶</button>
+            <button id="redoBtn" title="Redo (Ctrl+Y)" style="flex: 0.5;">↷</button>
             <button id="predictBtn">Predict</button>
             <button id="clearBtn">Clear</button>
         </div>
@@ -357,11 +359,45 @@
         // Drawing settings
         let drawingMode = 'pen'; // 'pen' or 'eraser'
         let brushSize = 12;
+        let drawingHistory = [];
+        let historyStep = -1;
+
+        function saveCanvasState() {
+            historyStep++;
+            if (historyStep < drawingHistory.length) {
+                drawingHistory.length = historyStep;
+            }
+            drawingHistory.push(canvas.toDataURL());
+        }
+
+        function undo() {
+            if (historyStep > 0) {
+                historyStep--;
+                loadCanvasState(historyStep);
+            }
+        }
+
+        function redo() {
+            if (historyStep < drawingHistory.length - 1) {
+                historyStep++;
+                loadCanvasState(historyStep);
+            }
+        }
+
+        function loadCanvasState(step) {
+            const img = new Image();
+            img.src = drawingHistory[step];
+            img.onload = function() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+            };
+        }
 
         function initCanvas() {
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             updateDrawingMode('pen');
+            saveCanvasState();
         }
 
         function updateDrawingMode(mode) {
@@ -425,8 +461,11 @@
         }
 
         function stopDrawing() {
-            isDrawing = false;
-            ctx.closePath();
+            if (isDrawing) {
+                isDrawing = false;
+                ctx.closePath();
+                saveCanvasState();
+            }
         }
 
         function handleTouch(e) {
@@ -444,6 +483,21 @@
         clearBtn.addEventListener('click', clearCanvas);
         brushBtn.addEventListener('click', () => updateDrawingMode('pen'));
         eraserBtn.addEventListener('click', () => updateDrawingMode('eraser'));
+        document.getElementById('undoBtn').addEventListener('click', undo);
+        document.getElementById('redoBtn').addEventListener('click', redo);
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'z') {
+                    e.preventDefault();
+                    undo();
+                } else if (e.key === 'y') {
+                    e.preventDefault();
+                    redo();
+                }
+            }
+        });
 
         // Brush size control
         brushSizeSlider.addEventListener('input', (e) => {
@@ -460,6 +514,9 @@
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             resultsDiv.classList.remove('show');
             statusDiv.textContent = '';
+            drawingHistory = [];
+            historyStep = -1;
+            saveCanvasState();
         }
 
         function handleImageUpload(event) {
