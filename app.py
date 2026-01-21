@@ -13,16 +13,18 @@ import tensorflow as tf
 from tensorflow import keras
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
+from prediction_service import PredictionService
 
 app = Flask(__name__, template_folder=".", static_folder=".")
 CORS(app)
 
-# Global model variable
+# Global variables
 model = None
+prediction_service = None
 
 def load_model():
     """Load the trained MNIST model."""
-    global model
+    global model, prediction_service
     model_path = "models/mnist_model.h5"
 
     if not os.path.exists(model_path):
@@ -30,44 +32,11 @@ def load_model():
 
     try:
         model = keras.models.load_model(model_path)
+        prediction_service = PredictionService(model)
         print(f"Model loaded from {model_path}")
         return True, "Model loaded successfully"
     except Exception as e:
         return False, f"Error loading model: {str(e)}"
-
-def preprocess_image(image_data):
-    """
-    Preprocess image data for model inference.
-    Args:
-        image_data: Base64 encoded PNG image
-    Returns:
-        Preprocessed numpy array or None if error
-    """
-    try:
-        # Decode base64
-        image_bytes = base64.b64decode(image_data.split(',')[1])
-        image = Image.open(io.BytesIO(image_bytes))
-
-        # Convert to grayscale if needed
-        if image.mode != 'L':
-            image = image.convert('L')
-
-        # Resize to 28x28
-        image = image.resize((28, 28), Image.Resampling.LANCZOS)
-
-        # Convert to numpy array and normalize
-        image_array = np.array(image, dtype='float32') / 255.0
-
-        # Invert colors (white digit on black background -> black digit on white)
-        image_array = 1.0 - image_array
-
-        # Flatten to 784 dimensions
-        image_array = image_array.reshape(1, 784)
-
-        return image_array
-    except Exception as e:
-        print(f"Error preprocessing image: {str(e)}")
-        return None
 
 @app.route('/')
 def index():
@@ -80,9 +49,7 @@ def predict():
     Predict digit from uploaded image.
     Expects JSON with 'image' field containing base64 encoded PNG.
     """
-    global model
-
-    if model is None:
+    if prediction_service is None:
         return jsonify({'error': 'Model not loaded'}), 500
 
     try:
@@ -93,39 +60,48 @@ def predict():
 
         image_data = data['image']
 
-        # Preprocess image
-        processed_image = preprocess_image(image_data)
+        # Make prediction using service
+        result = prediction_service.predict_single(image_data)
 
-        if processed_image is None:
-            return jsonify({'error': 'Failed to process image'}), 400
+        if 'error' in result:
+            return jsonify(result), 400
 
-        # Make prediction
-        start_time = time.time()
-        predictions = model.predict(processed_image, verbose=0)
-        inference_time = (time.time() - start_time) * 1000  # Convert to ms
-
-        predicted_digit = int(np.argmax(predictions[0]))
-        confidence = float(predictions[0][predicted_digit])
-
-        # Get top 3 predictions
-        top_3_indices = np.argsort(predictions[0])[-3:][::-1]
-        top_3 = [
-            {
-                'digit': int(idx),
-                'confidence': float(predictions[0][idx])
-            }
-            for idx in top_3_indices
-        ]
-
-        return jsonify({
-            'digit': predicted_digit,
-            'confidence': confidence,
-            'top_3': top_3,
-            'inference_time_ms': inference_time
-        })
+        return jsonify(result)
 
     except Exception as e:
         print(f"Error in prediction: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/predict_batch', methods=['POST'])
+def predict_batch():
+    """
+    Predict digits from multiple images.
+    Expects JSON with 'images' field containing list of base64 encoded PNGs.
+    """
+    if prediction_service is None:
+        return jsonify({'error': 'Model not loaded'}), 500
+
+    try:
+        data = request.get_json()
+
+        if 'images' not in data:
+            return jsonify({'error': 'No images provided'}), 400
+
+        images_data = data['images']
+
+        if not isinstance(images_data, list):
+            return jsonify({'error': 'Images must be a list'}), 400
+
+        if len(images_data) == 0:
+            return jsonify({'error': 'Empty images list'}), 400
+
+        # Make batch predictions
+        result = prediction_service.predict_batch(images_data)
+
+        return jsonify(result)
+
+    except Exception as e:
+        print(f"Error in batch prediction: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/health', methods=['GET'])
