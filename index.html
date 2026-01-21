@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Real-time handwritten digit recognition using deep learning">
+    <meta name="theme-color" content="#667eea">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23667eea' width='100' height='100'/><text x='50%' y='50%' font-size='60' fill='white' text-anchor='middle' dy='.35em' font-weight='bold'>7</text></svg>">
     <title>MNIST Handwritten Digit Recognition</title>
     <style>
         * {
@@ -632,6 +636,17 @@
                 }
             } catch (error) {
                 console.error('Health check failed:', error);
+            }
+
+            // Register service worker for offline support
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then((registration) => {
+                        console.log('Service Worker registered:', registration);
+                    })
+                    .catch((error) => {
+                        console.log('Service Worker registration failed:', error);
+                    });
             }
         });
     </script>
